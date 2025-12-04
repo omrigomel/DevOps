@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = "omrigomel"
+        DOCKERHUB_USER = "gomelomri@gmail.com"
         IMAGE_NAME = "flask-app"
     }
 
