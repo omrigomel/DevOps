@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_USER = "omrigomel"
+    }
+
+    stages {
+
+        stage('Pull Images') {
+            steps {
+                bat """
+                docker pull %DOCKERHUB_USER%/flask-app:latest
+                docker pull %DOCKERHUB_USER%/nginx-proxy:latest
+                """
+            }
+        }
+
+        stage('Run Flask Container') {
+            steps {
+                bat """
+                docker rm -f flask-app 2>nul
+                docker run -d --name flask-app %DOCKERHUB_USER%/flask-app:latest
+                """
+            }
+        }
+
+        stage('Run Nginx Container') {
+            steps {
+                bat """
+                docker rm -f nginx-proxy 2>nul
+                docker run -d --name nginx-proxy -p 8080:80 --link flask-app %DOCKERHUB_USER%/nginx-proxy:latest
+                """
+            }
+        }
+
+        stage('Test Application') {
+            steps {
+                bat """
+                curl http://localhost:8080
+                """
+            }
+        }
+
+    }
+
+    post {
+        always {
+            bat """
+            docker rm -f nginx-proxy 2>nul
+            docker rm -f flask-app 2>nul
+            """
+        }
+    }
+}
